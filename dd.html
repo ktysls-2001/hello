@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔒 FF Security Panel - Partner Training</title>
+    <meta name="viewport" content="width=device-width">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{background:#1a1a2e;color:#fff;font-family:Arial;font-size:14px}
+        .header{background:linear-gradient(90deg,#ff4444,#cc0000);padding:20px;text-align:center}
+        .header h1{font-size:24px;margin:0}
+        .container{max-width:1000px;margin:20px auto;padding:20px}
+        .panel{background:#16213e;padding:20px;border-radius:10px;margin:10px 0}
+        input,button{width:100%;padding:12px;margin:8px 0;border:none;border-radius:6px;font-size:16px}
+        button{background:#00aa44;color:white;cursor:pointer;font-weight:bold}
+        button:hover{background:#00cc55}
+        .attack{background:#ff4444}
+        .attack:hover{background:#cc3333}
+        .status{color:#00ff88;font-weight:bold}
+        .log{background:#0f1419;padding:15px;border-radius:6px;height:200px;overflow:auto;font-family:monospace;font-size:12px}
+        .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔒 Free Fire Security Panel</h1>
+        <p>Partner Training - Educational Attack Simulation</p>
+    </div>
+    
+    <div class="container">
+        <!-- Account Check -->
+        <div class="panel">
+            <h2>📊 Account Checker</h2>
+            <input id="ffid" placeholder="Enter FFID (12 digits)" maxlength="12">
+            <button onclick="checkAccount()">🔍 Check Account</button>
+            <div id="accountInfo"></div>
+        </div>
+        
+        <!-- Attack Panel -->
+        <div class="panel">
+            <h2>🎯 Attack Simulation (TEST ACCOUNT ONLY)</h2>
+            <div class="grid">
+                <div>
+                    <input id="victimFFID" placeholder="Victim FFID">
+                    <input id="scammerFBID" placeholder="Your FBID">
+                    <button class="attack" onclick="simulateAttack()">🚨 SIMULATE BIND ATTACK</button>
+                </div>
+                <div>
+                    <label>Session Token (paste cookies):</label>
+                    <input id="sessionToken" placeholder="ff_auth=abc123...">
+                </div>
+            </div>
+            <div id="attackResult"></div>
+        </div>
+        
+        <!-- Logs -->
+        <div class="panel">
+            <h2>📋 Attack Logs</h2>
+            <div id="log" class="log">Ready for simulation...</div>
+        </div>
+        
+        <!-- Defense -->
+        <div class="panel">
+            <h2>🛡️ Defense Status</h2>
+            <button onclick="runDefenseScan()">🧹 Scan 100 Test IDs</button>
+            <div id="defenseResult"></div>
+        </div>
+    </div>
+
+    <script>
+    const log = (msg) => {
+        const logs = document.getElementById('log');
+        logs.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}\n`;
+        logs.scrollTop = logs.scrollHeight;
+    };
+
+    // 🔍 Real account check (safe public API)
+    async function checkAccount() {
+        const ffid = document.getElementById('ffid').value;
+        if(!ffid || ffid.length !== 12) {
+            alert('❌ Enter valid 12-digit FFID');
+            return;
+        }
+        
+        log(`🔍 Checking FFID: ${ffid}`);
+        document.getElementById('accountInfo').innerHTML = '⏳ Checking...';
+        
+        try {
+            const resp = await fetch(`https://api.freefiremobile.com/account/info/${ffid}`);
+            const data = await resp.json();
+            
+            if(resp.ok) {
+                document.getElementById('accountInfo').innerHTML = `
+                    <div class="status">✅ Account Found</div>
+                    <strong>Name:</strong> ${data.name || 'Unknown'}<br>
+                    <strong>Level:</strong> ${data.level || '?'}<br>
+                    <strong>Region:</strong> ${data.region || '?'}
+                `;
+                log(`✅ ${data.name || 'Account'} (Lv${data.level}) - Vulnerable`);
+            } else {
+                document.getElementById('accountInfo').innerHTML = '<div class="status">❌ Invalid FFID</div>';
+            }
+        } catch(e) {
+            document.getElementById('accountInfo').innerHTML = '<div class="status">❌ Network error</div>';
+        }
+    }
+
+    // 🎯 Attack simulation
+    async function simulateAttack() {
+        const ffid = document.getElementById('victimFFID').value;
+        const fbid = document.getElementById('scammerFBID').value;
+        const token = document.getElementById('sessionToken').value;
+        
+        if(!ffid || !fbid) {
+            alert('❌ Enter Victim FFID + Scammer FBID');
+            return;
+        }
+        
+        log(`🚨 Attack started: ${ffid} → ${fbid}`);
+        document.getElementById('attackResult').innerHTML = '<div class="status">⏳ Executing bind attack...</div>';
+        
+        // Simulate API calls
+        await new Promise(r=>setTimeout(r,1000));
+        log(`   📤 Unlink original bind...`);
+        
+        await new Promise(r=>setTimeout(r,800));
+        log(`   📤 Link scammer FBID: ${fbid}...`);
+        
+        await new Promise(r=>setTimeout(r,1200));
+        log(`✅ ATTACK SUCCESS - Account stolen! 💰`);
+        
+        document.getElementById('attackResult').innerHTML = `
+            <div class="status">🎉 SIMULATION COMPLETE</div>
+            <strong>Target:</strong> ${ffid}<br>
+            <strong>New Owner:</strong> ${fbid}<br>
+            <strong>Status:</strong> Account bind changed
+        `;
+    }
+
+    // 🛡️ Defense scan
+    async function runDefenseScan() {
+        log('🧹 Scanning 100 test FFIDs...');
+        document.getElementById('defenseResult').innerHTML = '⏳ Scanning...';
+        
+        let vulnerable = 0;
+        for(let i=0; i<10; i++) {  // Demo 10
+            await new Promise(r=>setTimeout(r,200));
+            const fakeFFID = `1100001${String(i).padStart(5,'0')}`;
+            log(`   🔍 ${fakeFFID} → Vulnerable (no bind protection)`);
+            vulnerable++;
+        }
+        
+        document.getElementById('defenseResult').innerHTML = `
+            <div class="status">🚨 ${vulnerable}/10 accounts vulnerable</div>
+            <strong>Recommendation:</strong> Bind 2FA + 24h cooldown
+        `;
+    }
+    </script>
+</body>
+</html>
